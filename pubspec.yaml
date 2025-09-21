@@ -1,0 +1,15 @@
+name: meal_client_v2
+description: A starting point for Dart libraries or applications.
+version: 0.0.1
+
+environment:
+  sdk: ^3.4.1
+
+dependencies:
+  dio: ^5.9.0
+  hive: ^2.2.3
+  retry: ^3.1.2
+
+dev_dependencies:
+  lints: ^3.0.0
+  test: ^1.24.0
