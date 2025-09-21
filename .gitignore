@@ -5,3 +5,9 @@
 # Avoid committing pubspec.lock for library packages; see
 # https://dart.dev/guides/libraries/private-files#pubspeclock.
 pubspec.lock
+
+# FVM Version Cache
+.fvm/
+.gitignore
+.fvmrc
+.vscode/settings.json
