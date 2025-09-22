@@ -172,7 +172,7 @@ Contribuições são bem-vindas! Sinta-se à vontade para:
 3. Enviar pull requests
 4. Melhorar a documentação
 
-## �� Licença
+## Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
 
@@ -187,7 +187,3 @@ Assim como um bom bolo de fuba, esta biblioteca foi feita com ingredientes simpl
 *"Código bom é como bolo de fuba: simples, gostoso e sempre funciona!"* 🥮
 
 ---
-
-**Versão**: 2.0.0  
-**Flutter**: >=3.0.5  
-**Dart**: >=3.0.5
