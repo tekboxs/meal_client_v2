@@ -18,7 +18,7 @@ O **MealClient** é uma biblioteca Flutter robusta e elegante para gerenciamento
 - **Fallback de credenciais**: Sistema de backup para casos de erro
 - **Validação de expiração**: Verificação automática de validade dos tokens
 
-### �� Cliente HTTP Robusto
+### 🔐 Cliente HTTP Robusto
 - **Métodos HTTP completos**: GET, POST, PUT, DELETE
 - **Suporte a URLs absolutas e relativas**
 - **Headers customizáveis**
@@ -46,7 +46,7 @@ dependencies:
   meal_client:
     git:
       url: https://github.com/tekboxs/meal_client
-      ref: 2.0.0
+      ref: 1.0.0
 ```
 
 ## 📖 Uso Básico
