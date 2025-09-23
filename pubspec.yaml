@@ -7,6 +7,7 @@ environment:
 
 dependencies:
   dio: ^5.9.0
+  get_it: ^8.2.0
   hive: ^2.2.3
   retry: ^3.1.2
 
