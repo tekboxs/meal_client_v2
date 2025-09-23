@@ -1,4 +1,5 @@
 ## Dart SDK version: 3.7.2
+## 3.29.3
 
 # 🍰 MealClient - Biblioteca HTTP Client para Flutter
 
