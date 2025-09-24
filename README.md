@@ -71,31 +71,34 @@ await ClientKeys.conta.write('sua_conta');
 final client = AppClientProvider(httpClient);
 
 // GET request
-final produtos = await client.get<List>('/estoque/produto');
+final produtos = await '/estoque/produto'.get();
 
 // POST request
-final resultado = await client.post('/estoque/produto', {
-  'nome': 'Produto Exemplo',
-  'preco': 29.90
-});
+final resultado = await '/estoque/produto'.post(
+  KRequestOptions(dataToSend: {"bolo": "fuba"})
+);
 
 // PUT request
-await client.put('/estoque/produto/123', {
-  'nome': 'Produto Atualizado'
-});
+final resultado = await '/estoque/produto'.put(
+  KRequestOptions(dataToSend: {"bolo": "fuba"})
+);
 
 // DELETE request
-await client.delete('/estoque/produto/123');
+await '/estoque/produto/123'.delete();
 ```
 
 ### Usando Cache Inteligente
 
 ```dart
 // Com cache habilitado (padrão)
-final dados = await client.get('/dados', enableWorkMemory: true);
+final dados = await '/dados'.get(
+  KRequestOptions(enableWorkMemory: true)
+);
 
 // Sem cache
-final dadosFrescos = await client.get('/dados', enableWorkMemory: false);
+final dados = await '/dados'.get(
+  KRequestOptions(enableWorkMemory: true)
+);
 ```
 
 ## 🏗️ Arquitetura
@@ -133,27 +136,28 @@ Consulte `/test/client_test.dart` para exemplos práticos de uso.
 ### Headers Customizados
 
 ```dart
-final resultado = await client.get(
-  '/endpoint',
-  headers: {'Custom-Header': 'valor'},
-);
+final resultado = await  '/endpoint'.get(
+    KRequestOptions(
+      headers: {'Custom-Header': 'valor'}
+    )
+  );
 ```
 
 ### Desabilitar Token Automático
 
 ```dart
-final resultado = await client.get(
-  '/endpoint',
-  disableAutoToken: true,
-);
+final resultado = await  '/endpoint'.get(
+    KRequestOptions(disableAutoToken: true)
+  );
 ```
 
 ### Chave de Exportação Customizada
 
 ```dart
-final dados = await client.get(
-  '/endpoint',
-  exportKey: 'resultado', // Padrão: 'data'
+final dados = await '/endpoint'.get(
+  KRequestOptions(
+   exportKey: 'resultado', // Padrão: 'data'
+  )
 );
 ```
 
