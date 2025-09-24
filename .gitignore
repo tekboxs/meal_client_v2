@@ -10,4 +10,11 @@ pubspec.lock
 .fvm/
 .gitignore
 .fvmrc
-.vscode/settings.json
+
+test_db/
+
+build/
+.vscode/
+.idea/
+.flutter-plugins-dependencies
+.flutter-plugins
