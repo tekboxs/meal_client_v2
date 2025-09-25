@@ -37,8 +37,7 @@ void main() async {
   final databaseService = DatabaseManager.databaseService;
 
   await databaseService.saveCache('custom_key', {'custom': 'data'});
-  final customData =
-      await databaseService.getCache<Map<String, dynamic>>('custom_key');
+  final customData = await databaseService.getCache<Map<String, dynamic>>('custom_key');
   print('   Custom data: $customData');
 
   await databaseService.saveConfig('custom_config', 'custom_value');
