@@ -9,7 +9,7 @@ class MealClientDBAdapter{
   void save(key, value) async {
     await dataBase.write(
       key,
-      CacheModel(creationDate: DateTime.now(), value: value).toString(),
+      CacheModel(value: value).toJson(),
     );
     print(">> $key Saved");
   }

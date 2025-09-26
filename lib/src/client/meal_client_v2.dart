@@ -1,19 +1,18 @@
 import 'package:dio/dio.dart';
-import 'package:dio/src/options.dart';
+import 'package:meal_client_v2/meal_client_v2.dart';
 import 'package:meal_client_v2/src/client/meal_db_adapter.dart';
-import 'package:meal_client_v2/src/client/meal_dio_initializer.dart';
+import 'package:meal_client_v2/src/client/meal_http_initializer.dart';
 import 'package:retry/retry.dart';
 
 enum MealClientError { notFound, invalidResponse }
 
-class MealClientV2{
-  final MealDioInitializer initializer;
-  //TODO: Nao entendi o IMealDBAdpter
+class MealClient{
+  final MealInitializer initializer;
   MealClientDBAdapter adapter = MealClientDBAdapter();
-  MealClientV2({required this.initializer});
+  MealClient({required this.initializer});
 
-  String _cacheKey(String base, String patch) {
-    return Uri.parse(base).resolve(patch).toString();
+  String _cacheKey(String base) {
+    return Uri.parse(base).toString();
   }
 
   Future<dynamic> _cacheHandle(String? url) async {
@@ -64,7 +63,9 @@ class MealClientV2{
     bool enableCache = false,
     String defaultKeySelector = 'data',
   }) async {
-    final key = _cacheKey(initializer.varBaseUrl, url);
+    final String varBaseUrl = await ConfigKeys.baseUrl.read<String>() ?? '';
+
+    final key = _cacheKey(varBaseUrl);
     // habilitar cache
     if (enableCache) {
       final cachedData = await _cacheHandle(key);
@@ -79,7 +80,7 @@ class MealClientV2{
 
     // Rede com retry
     try {
-      final dio = initializer();
+      final dio = await initializer();
       final response = await RetryOptions(maxAttempts: 3).retry(
         () async {
           final resp = await dio.get(url,
@@ -124,7 +125,7 @@ class MealClientV2{
     Map<String, String>? headers,
     ResponseType? responseType,
   }) async {
-    final dio = initializer();
+    final dio = await initializer();
     final resp = await dio.post(
       url,
       data: data,

@@ -1,13 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:meal_client_v2/meal_client_v2.dart';
 
-class MealDioInterceptors {
+class MealInterceptors {
   //Interceptores de retorno, usuario querer informacoes da api
   // Criando o header padrao da api
   Future<RequestOptions> onRequest(RequestOptions options) async {
-    if (options.headers.isEmpty) {
-      //TODO: Usar a classe MealAuthenticator
-      final token = await ConfigKeys.token.read<String>();
+    final token = await ConfigKeys.token.read<String>();
+    if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
     return options;

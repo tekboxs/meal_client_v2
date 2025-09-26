@@ -1,15 +1,17 @@
 import 'package:dio/dio.dart';
-import 'package:meal_client_v2/src/client/meal_dio_interceptors.dart';
+import 'package:meal_client_v2/meal_client_v2.dart';
+import 'package:meal_client_v2/src/client/meal_interceptors.dart';
 
-class MealDioInitializer {
-  final String varBaseUrl;
-  final MealDioInterceptors interceptors;
-  MealDioInitializer(this.varBaseUrl, this.interceptors);
+class MealInitializer {
+  final MealInterceptors interceptors;
+  MealInitializer(this.interceptors);
+  
 
-  Dio call() {
+  Future<Dio> call() async{
+    final baseUrl = await ConfigKeys.baseUrl.read<String>() ?? '';
     final dio = Dio(
       BaseOptions(
-        baseUrl: varBaseUrl,
+        baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 5),
         receiveTimeout: const Duration(seconds: 5),
         responseType: ResponseType.json,
