@@ -1,7 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:meal_client_v2/meal_client_v2.dart';
-import 'package:meal_client_v2/src/client/meal_db_adapter.dart';
-import 'package:meal_client_v2/src/client/meal_http_initializer.dart';
 import 'package:retry/retry.dart';
 
 enum MealClientError { notFound, invalidResponse }

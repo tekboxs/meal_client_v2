@@ -10,6 +10,7 @@ dependencies:
   hive: ^2.2.3
   retry: ^3.1.2
   get_it: ^7.6.4
+  jwt_decoder: ^2.0.1
 
 dev_dependencies:
   lints: ^3.0.0

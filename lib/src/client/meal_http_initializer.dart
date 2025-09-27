@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:meal_client_v2/meal_client_v2.dart';
-import 'package:meal_client_v2/src/client/meal_interceptors.dart';
 
 class MealInitializer {
   final MealInterceptors interceptors;

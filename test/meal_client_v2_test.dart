@@ -3,9 +3,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:meal_client_v2/meal_client_v2.dart';
-import 'package:meal_client_v2/src/client/meal_client_v2.dart';
-import 'package:meal_client_v2/src/client/meal_http_initializer.dart';
-import 'package:meal_client_v2/src/client/meal_interceptors.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -160,6 +157,117 @@ void main() {
       expect(adapter.callCount, equals(3));
     });
   });
+
+  group('MealAuthenticator', () {
+    late MealAuthenticator authenticator;
+    late _MockHttpClientAdapter adapter;
+    final hiveDir = Directory('test/hive_auth_boxes');
+
+    setUpAll(() async {
+      await hiveDir.create(recursive: true);
+      await DatabaseManager.initialize(path: hiveDir.path);
+    });
+
+    tearDownAll(() async {
+      await DatabaseManager.dispose();
+      if (hiveDir.existsSync()) {
+        await hiveDir.delete(recursive: true);
+      }
+    });
+
+    setUp(() async {
+      adapter = _MockHttpClientAdapter(
+        responseMap: {
+          'data': {
+            'accessToken': _createJwt(
+              user: 'user_a',
+              account: 'acc_a',
+              expiresIn: const Duration(minutes: 5),
+            ),
+          },
+        },
+      );
+
+      final dio = Dio()..httpClientAdapter = adapter;
+      authenticator = MealAuthenticator(
+        baseUrl: 'https://api.test.com',
+        username: 'user_a',
+        password: 'secret',
+        account: 'acc_a',
+        httpClient: dio,
+      );
+
+      await DatabaseManager.databaseService.clearAll();
+    });
+
+    test('requests new token when none is stored', () async {
+      final headers = await authenticator.getToken();
+
+      expect(headers['Authorization'], startsWith('Bearer '));
+      final storedToken = await ConfigKeys.token.read<String>();
+      expect(storedToken, isNotNull);
+      expect(adapter.callCount, equals(1));
+    });
+
+    test('reuses stored token when valid for current user and account', () async {
+      final validToken = _createJwt(
+        user: 'user_a',
+        account: 'acc_a',
+        expiresIn: const Duration(minutes: 5),
+      );
+
+      await ConfigKeys.token.save(validToken);
+
+      adapter.shouldFail = true;
+
+      final headers = await authenticator.getToken();
+
+      expect(headers['Authorization'], equals('Bearer $validToken'));
+      expect(adapter.callCount, equals(0));
+    });
+
+    test('cleans cache and refreshes token when account changes', () async {
+      final cachedData = {'cached': 'value'};
+      await CacheKeys.userData.save(cachedData);
+
+      final mismatchedToken = _createJwt(
+        user: 'user_a',
+        account: 'other_account',
+        expiresIn: const Duration(minutes: 5),
+      );
+      await ConfigKeys.token.save(mismatchedToken);
+
+      final headers = await authenticator.getToken();
+
+      expect(headers['Authorization'], isNotNull);
+      expect(adapter.callCount, equals(1));
+      final exists = await CacheKeys.userData.exists();
+      expect(exists, isFalse);
+    });
+  });
+}
+
+String _createJwt({
+  required String user,
+  required String account,
+  required Duration expiresIn,
+}) {
+  final header = {'alg': 'HS256', 'typ': 'JWT'};
+  final expiry = DateTime.now().add(expiresIn).millisecondsSinceEpoch ~/ 1000;
+  final payload = {
+    'nameid': user,
+    'groupsid': account,
+    'exp': expiry,
+  };
+
+  String encode(Map<String, Object?> data) =>
+      base64UrlEncode(utf8.encode(jsonEncode(data))).replaceAll('=', '');
+
+  final headerPart = encode(header);
+  final payloadPart = encode(payload);
+  const signaturePart = 'signature';
+
+  return '$headerPart.$payloadPart.$signaturePart';
 }
 
 class _TestMealInitializer extends MealInitializer {
@@ -179,11 +287,10 @@ class _TestMealInitializer extends MealInitializer {
 class _MockHttpClientAdapter implements HttpClientAdapter {
   _MockHttpClientAdapter({
     Map<String, dynamic>? responseMap,
-    this.shouldFail = false,
   }) : responseMap = responseMap ?? const {'data': 'freshData'};
 
   final Map<String, dynamic> responseMap;
-  bool shouldFail;
+  bool shouldFail = false;
   int callCount = 0;
   RequestOptions? lastRequestOptions;
 
