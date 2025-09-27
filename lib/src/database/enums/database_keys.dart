@@ -21,8 +21,21 @@ enum ConfigKeys {
   baseUrl('base_url'),
   userId('user_id'),
   lastSync('last_sync'),
-  preferences('preferences');
+  preferences('preferences'),
+  defaultKeySelector('default_key_selector'),
+  receiveTimeout('receive_timeout'),
+  sendTimeout('send_timeout'),
+  retryOptions('retry_options');
 
   const ConfigKeys(this.key);
   final String key;
+}
+
+enum NumberStandard {
+  receiveTimeout(5),
+  sendTimeout(5),
+  retryOptions(5);
+
+  const NumberStandard(this.value);
+  final int value;
 }

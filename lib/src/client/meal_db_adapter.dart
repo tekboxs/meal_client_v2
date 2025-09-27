@@ -3,33 +3,40 @@ import 'package:meal_client_v2/src/database/services/hive_service.dart';
 
 enum MealDataBaseError { notFound, outdated }
 
-class MealClientDBAdapter{
-  final HiveService dataBase = HiveService(boxName: DatabaseBoxes.cache.name);
+class MealClientDBAdapter {
+  MealClientDBAdapter({HiveService? database})
+      : _database = database ?? DatabaseContainer.cacheService;
 
-  void save(key, value) async {
-    await dataBase.write(
-      key,
+  final HiveService _database;
+  static const _cacheDuration = Duration(minutes: 30);
+
+  Future<void> save(dynamic key, dynamic value) async {
+    final storageKey = key.toString();
+    await _database.write(
+      storageKey,
       CacheModel(value: value).toJson(),
     );
-    print(">> $key Saved");
   }
 
-  Future read(key, {bool ignoreCache = true}) async {
-    final data = await dataBase.read(key);
+  Future<dynamic> read(dynamic key, {bool ignoreCache = true}) async {
+    final storageKey = key.toString();
+    final data = await _database.read<String>(storageKey);
     if (data == null) return MealDataBaseError.notFound;
-    if (ignoreCache) return CacheModel.fromJson(data).value;
 
     final cache = CacheModel.fromJson(data);
-    final ageMinutes = DateTime.now().difference(cache.creationDate).inMinutes;
-
-    if (ageMinutes < 30) {
+    if (ignoreCache) {
       return cache.value;
     }
+
+    final ageMinutes = DateTime.now().difference(cache.creationDate).inMinutes;
+    if (ageMinutes < _cacheDuration.inMinutes) {
+      return cache.value;
+    }
+
     return MealDataBaseError.outdated;
   }
 
-  void delete(key) {
-    // TODO: implement delete
+  Future<void> delete(dynamic key) async {
+    await _database.delete(key.toString());
   }
-
 }

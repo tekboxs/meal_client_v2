@@ -1,5 +1,12 @@
-import 'package:test/test.dart';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:meal_client_v2/meal_client_v2.dart';
+import 'package:meal_client_v2/src/client/meal_client_v2.dart';
+import 'package:meal_client_v2/src/client/meal_http_initializer.dart';
+import 'package:meal_client_v2/src/client/meal_interceptors.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Database Tests', () {
@@ -83,4 +90,128 @@ void main() {
       expect(ConfigKeys.preferences.key, equals('preferences'));
     });
   });
+
+  group('MealClient getMethod', () {
+    late MealClient client;
+    late _MockHttpClientAdapter adapter;
+    final hiveDir = Directory('test/hive_boxes');
+
+    setUpAll(() async {
+      await hiveDir.create(recursive: true);
+      await DatabaseManager.initialize(path: hiveDir.path);
+    });
+
+    tearDownAll(() async {
+      await DatabaseManager.dispose();
+      if (hiveDir.existsSync()) {
+        await hiveDir.delete(recursive: true);
+      }
+    });
+
+    setUp(() async {
+      adapter = _MockHttpClientAdapter();
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.test.com'))
+        ..httpClientAdapter = adapter;
+
+      final interceptors = MealInterceptors();
+      final initializer = _TestMealInitializer(interceptors, dio);
+      client = MealClient(initializer: initializer);
+
+      await DatabaseManager.databaseService.clearAll();
+      await ConfigKeys.baseUrl.save('https://api.test.com');
+      await ConfigKeys.token.save('testToken');
+      await ConfigKeys.receiveTimeout.save(3);
+      await ConfigKeys.sendTimeout.save(3);
+      await ConfigKeys.retryOptions.save(2);
+    });
+
+    tearDown(() async {
+      await DatabaseManager.databaseService.clearAll();
+    });
+
+    test('returns response data and caches on success', () async {
+      final result = await client.getMethod('/resource');
+
+      expect(result, equals('freshData'));
+      expect(adapter.callCount, equals(1));
+      expect(
+        adapter.lastRequestOptions?.headers['Authorization'],
+        equals('Bearer testToken'),
+      );
+
+      final cached = await client.adapter.read('https://api.test.com');
+      expect(cached, isA<Map>());
+      expect((cached as Map)['data'], equals('freshData'));
+
+      adapter.shouldFail = true;
+      final cacheHit = await client.getMethod('/resource', enableCache: true);
+
+      expect(cacheHit, equals('freshData'));
+      expect(adapter.callCount, equals(1));
+    });
+
+    test('falls back to cached data when network fails', () async {
+      await client.getMethod('/resource');
+      adapter.shouldFail = true;
+
+      final result = await client.getMethod('/resource', enableCache: false);
+
+      expect(result, equals('freshData'));
+      expect(adapter.callCount, equals(3));
+    });
+  });
+}
+
+class _TestMealInitializer extends MealInitializer {
+  _TestMealInitializer(MealInterceptors interceptors, this._dio)
+      : super(interceptors) {
+    _dio.interceptors.add(interceptors);
+  }
+
+  final Dio _dio;
+
+  @override
+  Future<Dio> call() async {
+    return _dio;
+  }
+}
+
+class _MockHttpClientAdapter implements HttpClientAdapter {
+  _MockHttpClientAdapter({
+    Map<String, dynamic>? responseMap,
+    this.shouldFail = false,
+  }) : responseMap = responseMap ?? const {'data': 'freshData'};
+
+  final Map<String, dynamic> responseMap;
+  bool shouldFail;
+  int callCount = 0;
+  RequestOptions? lastRequestOptions;
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    callCount += 1;
+    lastRequestOptions = options;
+
+    if (shouldFail) {
+      throw DioException(
+        requestOptions: options,
+        type: DioExceptionType.connectionTimeout,
+        error: 'Simulated failure',
+      );
+    }
+
+    final payload = jsonEncode(responseMap);
+    return ResponseBody.fromString(
+      payload,
+      200,
+      headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+    );
+  }
 }

@@ -5,32 +5,23 @@ import 'package:meal_client_v2/src/client/meal_interceptors.dart';
 class MealInitializer {
   final MealInterceptors interceptors;
   MealInitializer(this.interceptors);
-  
 
-  Future<Dio> call() async{
+  Future<Dio> call() async {
     final baseUrl = await ConfigKeys.baseUrl.read<String>() ?? '';
+    final receiveTimeoutSeconds = await ConfigKeys.receiveTimeout.read<int>() ??
+        NumberStandard.receiveTimeout.value;
+    final sendTimeoutSeconds = await ConfigKeys.sendTimeout.read<int>() ??
+        NumberStandard.sendTimeout.value;
     final dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 5),
+        connectTimeout: Duration(seconds: receiveTimeoutSeconds),
+        receiveTimeout: Duration(seconds: receiveTimeoutSeconds),
+        sendTimeout: Duration(seconds: sendTimeoutSeconds),
         responseType: ResponseType.json,
       ),
     );
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final opts = await interceptors.onRequest(options);
-          handler.next(opts);
-        },
-        onResponse: (response, handler) {
-          handler.next(interceptors.onResponse(response));
-        },
-        onError: (e, handler) {
-          handler.next(interceptors.onError(e));
-        },
-      ),
-    );
+    dio.interceptors.add(interceptors);
 
     return dio;
   }

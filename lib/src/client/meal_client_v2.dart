@@ -17,7 +17,7 @@ class MealClient{
 
   Future<dynamic> _cacheHandle(String? url) async {
     if (url == null) return null;
-    final data = await adapter.read(Uri.parse(url), ignoreCache: false);
+    final data = await adapter.read(url, ignoreCache: false);
     if (data is! MealDataBaseError) {
       print(">> send data from cache");
       return data;
@@ -64,7 +64,11 @@ class MealClient{
     String defaultKeySelector = 'data',
   }) async {
     final String varBaseUrl = await ConfigKeys.baseUrl.read<String>() ?? '';
-
+    final receiveTimeoutSeconds =
+        await ConfigKeys.receiveTimeout.read<int>() ?? NumberStandard.receiveTimeout.value;
+    final sendTimeoutSeconds =
+        await ConfigKeys.sendTimeout.read<int>() ?? NumberStandard.sendTimeout.value;
+    
     final key = _cacheKey(varBaseUrl);
     // habilitar cache
     if (enableCache) {
@@ -81,14 +85,16 @@ class MealClient{
     // Rede com retry
     try {
       final dio = await initializer();
-      final response = await RetryOptions(maxAttempts: 3).retry(
+      final retryOptionsOpt = await ConfigKeys.retryOptions.read<int>() ??
+        NumberStandard.retryOptions.value;
+      final response = await RetryOptions(maxAttempts: retryOptionsOpt).retry(
         () async {
           final resp = await dio.get(url,
               options: Options(
                 responseType: responseType ?? ResponseType.json,
                 headers: headers ?? const <String, String>{},
-                receiveTimeout: const Duration(seconds: 5),
-                sendTimeout: const Duration(seconds: 5),
+                receiveTimeout: Duration(seconds: receiveTimeoutSeconds),
+                sendTimeout: Duration(seconds: sendTimeoutSeconds),
               ));
           return resp;
         },
@@ -96,7 +102,7 @@ class MealClient{
       );
       // Gravar no cache
       try {
-        adapter.save(key, response.data);
+        await adapter.save(key, response.data);
       } catch (_) {
         print(">> eror ao salvar cache");
       }
@@ -126,14 +132,18 @@ class MealClient{
     ResponseType? responseType,
   }) async {
     final dio = await initializer();
+    final receiveTimeoutSeconds =
+        await ConfigKeys.receiveTimeout.read<int>() ?? NumberStandard.receiveTimeout.value;
+    final sendTimeoutSeconds =
+        await ConfigKeys.sendTimeout.read<int>() ?? NumberStandard.sendTimeout.value;
     final resp = await dio.post(
       url,
       data: data,
       options: Options(
         headers: headers ?? const <String, String>{},
         responseType: responseType ?? ResponseType.json,
-        receiveTimeout: const Duration(seconds: 5),
-        sendTimeout: const Duration(seconds: 5),
+        receiveTimeout: Duration(seconds: receiveTimeoutSeconds),
+        sendTimeout: Duration(seconds: sendTimeoutSeconds),
       ),
     );
     return resp.data;

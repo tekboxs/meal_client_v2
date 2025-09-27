@@ -25,6 +25,8 @@ void main() async {
   print('2. Config Operations with Extensions:');
   await ConfigKeys.token.save('abc123token');
   await ConfigKeys.baseUrl.save('https://api.example.com');
+  await ConfigKeys.receiveTimeout.save(5);
+  await ConfigKeys.sendTimeout.save(5);
 
   final token = await ConfigKeys.token.read<String>();
   print('   Token: $token');
