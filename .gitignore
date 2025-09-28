@@ -7,4 +7,16 @@
 pubspec.lock
 
 # FVM Version Cache
+<<<<<<< HEAD
 .fvm/
+=======
+.fvm/
+
+test_db/
+
+build/
+.vscode/
+.idea/
+.flutter-plugins-dependencies
+.flutter-plugins
+>>>>>>> 9fee8cb80c0c848b5621b56a8d1f3923480c7ec8

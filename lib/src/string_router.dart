@@ -1,7 +1,33 @@
-import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
+// import 'package:dio/dio.dart';
+// import 'package:get_it/get_it.dart';
 
+// final getIt = GetIt.instance;
 
+// setupProviders(){
+
+// }
+
+// class RequestError {
+//   final String? message;
+//   final String? debugMessage;
+
+//   RequestError({this.message, this.debugMessage});
+// }
+
+// class ConnectionError {
+//   final String? message;
+//   final String? debugMessage;
+//   final int? status;
+
+//   ConnectionError({this.status, this.message, this.debugMessage});
+// }
+
+// class TypeConversionError {
+//   final String? message;
+//   final String? debugMessage;
+
+//   TypeConversionError({this.message, this.debugMessage});
+// }
 
 // bool isSubtype<T1, T2>() => <T1>[] is List<T2>;
 
@@ -230,24 +256,3 @@ import 'package:get_it/get_it.dart';
 //   }
 // }
 
-// class RequestError {
-//   final String? message;
-//   final String? debugMessage;
-
-//   RequestError({this.message, this.debugMessage});
-// }
-
-// class ConnectionError {
-//   final String? message;
-//   final String? debugMessage;
-//   final int? status;
-
-//   ConnectionError({this.status, this.message, this.debugMessage});
-// }
-
-// class TypeConversionError {
-//   final String? message;
-//   final String? debugMessage;
-
-//   TypeConversionError({this.message, this.debugMessage});
-// }
